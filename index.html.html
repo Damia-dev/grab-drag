@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#11152d" />
+  <title>Grab &amp; Throw — English Knowledge Arena</title>
+  <style>
+    :root {
+      --bg: #090d20;
+      --panel: rgba(22, 29, 62, .88);
+      --line: rgba(174, 191, 255, .2);
+      --ink: #f7f8ff;
+      --muted: #aab4dd;
+      --cyan: #3cf4ec;
+      --pink: #ff4fd8;
+      --yellow: #ffe66d;
+      --green: #55f59b;
+      --red: #ff5778;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(ellipse at 12% 0%, rgba(108, 56, 222, .28), transparent 34%),
+        radial-gradient(ellipse at 94% 14%, rgba(0, 209, 255, .16), transparent 30%),
+        linear-gradient(135deg, #090d20 0%, #121735 55%, #0a1028 100%);
+      padding: 18px;
+    }
+    button { font: inherit; }
+    .app { max-width: 1440px; margin: 0 auto; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+    .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .brand-mark {
+      display: grid; place-items: center; width: 54px; height: 54px; flex: 0 0 auto;
+      border-radius: 17px; font-size: 27px; color: #11152d;
+      background: linear-gradient(135deg, var(--yellow), #ff8e55 45%, var(--pink));
+      box-shadow: 0 0 25px rgba(255, 79, 216, .24), inset 0 1px 0 #fff8;
+    }
+    .eyebrow { text-transform: uppercase; letter-spacing: .18em; font-size: 10px; color: var(--cyan); font-weight: 900; margin-bottom: 3px; }
+    h1 { margin: 0; font-size: clamp(21px, 3vw, 34px); letter-spacing: -.04em; line-height: 1.05; }
+    .brand-sub { color: var(--muted); font-size: 12px; margin-top: 5px; }
+    .live-pill { display: flex; align-items: center; gap: 8px; border: 1px solid rgba(60,244,236,.3); border-radius: 999px; padding: 9px 13px; color: #bffffc; background: rgba(60,244,236,.08); font-weight: 800; font-size: 11px; white-space: nowrap; }
+    .live-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 12px var(--green); }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat { min-height: 74px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 18px; padding: 13px 16px; background: linear-gradient(135deg, rgba(25,32,68,.9), rgba(16,23,51,.72)); box-shadow: 0 8px 22px #0002; }
+    .stat-icon { display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 auto; border-radius: 13px; font-size: 20px; background: rgba(255,255,255,.07); }
+    .stat-label { color: var(--muted); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 900; }
+    .stat-value { margin-top: 2px; font-size: clamp(18px, 2vw, 25px); font-weight: 950; letter-spacing: -.03em; line-height: 1.1; }
+    #timerValue.urgent { color: var(--red); animation: pulse .7s infinite alternate; }
+    #lifeValue { color: #ff7193; letter-spacing: .1em; font-size: 21px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 16px; align-items: stretch; }
+    .panel { border: 1px solid var(--line); background: var(--panel); border-radius: 24px; box-shadow: 0 18px 45px rgba(0,0,0,.2); overflow: hidden; }
+    .game-panel { min-width: 0; padding: 19px; }
+    .question-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 14px; }
+    .question-kicker { color: var(--yellow); font-weight: 900; font-size: 11px; text-transform: uppercase; letter-spacing: .16em; margin-bottom: 7px; }
+    h2 { font-size: clamp(18px, 2vw, 26px); letter-spacing: -.025em; line-height: 1.22; margin: 0; max-width: 850px; }
+    .question-count { flex: 0 0 auto; border-radius: 12px; padding: 8px 11px; font-size: 12px; font-weight: 900; background: rgba(255,230,109,.1); color: var(--yellow); border: 1px solid rgba(255,230,109,.22); }
+    .progress-track { height: 5px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; margin: 0 0 15px; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--cyan), #9382ff, var(--pink)); transition: width .35s ease; }
+    .hintbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--muted); font-size: 11px; }
+    .hintbar strong { color: #eafcff; font-weight: 800; }
+    .gesture-label { color: var(--cyan); font-weight: 900; text-align: right; }
+    .arena {
+      min-height: 435px; height: clamp(435px, 43vw, 560px); position: relative; overflow: hidden; isolation: isolate;
+      border: 1px solid rgba(132, 155, 255, .26); border-radius: 21px;
+      background:
+        radial-gradient(circle at 86% 22%, rgba(255,79,216,.15), transparent 17%),
+        radial-gradient(circle at 16% 63%, rgba(60,244,236,.1), transparent 25%),
+        linear-gradient(180deg, rgba(9,15,42,.96), rgba(13,19,47,.97));
+    }
+    .arena::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .38; background-image: radial-gradient(#a7b7ff 1px, transparent 1px); background-size: 26px 26px; mask-image: linear-gradient(180deg, black, transparent 90%); }
+    .arena-glow { position: absolute; height: 170px; width: 80%; left: 10%; bottom: -115px; border-radius: 50%; background: rgba(91,95,255,.25); filter: blur(36px); pointer-events: none; }
+    .arena-tag { position: absolute; left: 17px; top: 15px; color: rgba(199,211,255,.7); font-size: 10px; font-weight: 900; letter-spacing: .15em; text-transform: uppercase; }
+    .target {
+      position: absolute; left: 76%; top: 35px; width: 20%; height: 155px; min-width: 112px; max-width: 180px;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px;
+      border: 2px dashed rgba(255,79,216,.8); border-radius: 25px; background: rgba(255,79,216,.075);
+      color: #ffd8f7; text-align: center; font-size: 10px; font-weight: 950; letter-spacing: .08em; z-index: 2;
+      transition: background .15s, box-shadow .15s, transform .15s;
+    }
+    .target-core { display: grid; place-items: center; width: 75px; height: 75px; border: 5px solid #ff69df; border-radius: 50%; color: white; font-size: 28px; background: radial-gradient(circle, #ff8be6 0%, #a72be5 63%, #4527a8 100%); box-shadow: 0 0 0 9px rgba(255,79,216,.12), 0 0 29px rgba(255,79,216,.52), inset 0 0 15px #fff7; animation: portalPulse 2s ease-in-out infinite; }
+    .target.active { background: rgba(85,245,155,.2); border-color: var(--green); box-shadow: 0 0 25px rgba(85,245,155,.45); transform: scale(1.035); }
+    .target.active .target-core { background: radial-gradient(circle, #b7ffd9, #19c979 65%, #14744f); border-color: #adffd1; }
+    .answer-orb {
+      position: absolute; bottom: 23px; width: 29.4%; height: 145px; z-index: 3;
+      display: flex; align-items: center; gap: 11px; padding: 15px 14px; border-radius: 20px;
+      color: #fff; text-align: left; border: 1px solid rgba(255,255,255,.43); cursor: pointer;
+      background: linear-gradient(135deg, rgba(67,91,190,.95), rgba(36,43,100,.96));
+      box-shadow: 0 13px 27px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.25);
+      transition: transform .18s, box-shadow .18s, opacity .18s, filter .18s;
+    }
+    .answer-orb:nth-of-type(1) { left: 2%; }
+    .answer-orb:nth-of-type(2) { left: 35.3%; }
+    .answer-orb:nth-of-type(3) { left: 68.6%; }
+    .answer-orb::after { content: ""; position: absolute; width: 55px; height: 55px; border-radius: 50%; right: 9px; top: -12px; background: rgba(255,255,255,.075); pointer-events: none; }
+    .answer-orb:hover { transform: translateY(-5px); filter: brightness(1.12); }
+    .answer-orb.picked { opacity: .23; transform: scale(.94); filter: grayscale(.4); }
+    .answer-orb .orb-letter { display: grid; place-items: center; width: 39px; height: 39px; flex: 0 0 auto; border: 1px solid #ffffff80; border-radius: 13px; background: #ffffff1c; font-size: 16px; font-weight: 1000; box-shadow: inset 0 1px 0 #fff5; }
+    .answer-orb .answer-copy { position: relative; z-index: 1; font-size: clamp(11px, 1.06vw, 14px); line-height: 1.35; font-weight: 850; overflow-wrap: anywhere; }
+    .answer-orb[data-color="0"] { background: linear-gradient(135deg, rgba(18,179,190,.95), rgba(37,63,142,.98)); }
+    .answer-orb[data-color="1"] { background: linear-gradient(135deg, rgba(136,77,232,.98), rgba(63,48,145,.98)); }
+    .answer-orb[data-color="2"] { background: linear-gradient(135deg, rgba(230,62,170,.96), rgba(100,47,155,.98)); }
+    .held-ball { display: none; position: absolute; z-index: 8; width: min(250px, 34%); min-height: 65px; padding: 12px 15px; border-radius: 17px; transform: translate3d(-50%, -50%, 0); will-change: left, top; border: 2px solid #fff; background: linear-gradient(135deg, #0ccdd3, #674dff 58%, #f24cc9); box-shadow: 0 0 0 7px rgba(60,244,236,.18), 0 0 31px rgba(60,244,236,.65); pointer-events: none; font-size: 13px; font-weight: 950; line-height: 1.25; }
+    .held-ball.visible { display: grid; place-items: center; }
+    .hand-cursor { display: none; position: absolute; z-index: 10; width: 48px; height: 48px; border-radius: 50%; transform: translate3d(-50%, -50%, 0); will-change: left, top; border: 3px solid var(--cyan); background: rgba(60,244,236,.13); box-shadow: 0 0 0 8px rgba(60,244,236,.08), 0 0 24px var(--cyan); pointer-events: none; }
+    .hand-cursor::after { content: ""; position: absolute; inset: 12px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+    .hand-cursor.pinching { border-color: var(--yellow); background: #ffe66d40; box-shadow: 0 0 0 8px #ffe66d20, 0 0 23px var(--yellow); }
+    .hand-cursor.pinching::after { background: var(--yellow); box-shadow: 0 0 12px var(--yellow); }
+    .projectile { display: none; position: absolute; z-index: 9; width: 68px; height: 68px; border-radius: 50%; align-items: center; justify-content: center; border: 4px solid white; background: radial-gradient(circle at 30% 25%, #fff, #ffe66d 30%, #ff8f36 62%, #ff4fd8); box-shadow: 0 0 24px #ffe66d; transform: translate(-50%, -50%); pointer-events: none; }
+    .projectile.visible { display: flex; }
+    .projectile.flying { transition: left .65s cubic-bezier(.18,.7,.22,1), top .65s cubic-bezier(.18,.7,.22,1), transform .65s ease; transform: translate(-50%, -50%) scale(.35) rotate(270deg); }
+    .toast { min-height: 37px; display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-top: 11px; border: 1px solid rgba(174,191,255,.16); background: rgba(255,255,255,.035); border-radius: 12px; font-size: 12px; color: #cad3f7; }
+    .toast.good { color: #b9ffda; border-color: rgba(85,245,155,.35); background: rgba(85,245,155,.065); }
+    .toast.bad { color: #ffd3de; border-color: rgba(255,87,120,.35); background: rgba(255,87,120,.065); }
+    .side-panel { padding: 17px; display: flex; flex-direction: column; gap: 15px; }
+    .side-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 14px; font-weight: 950; }
+    .camera-status { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; font-weight: 800; }
+    .camera-status .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #ffbd4a; }
+    .camera-status.on .status-dot { background: var(--green); box-shadow: 0 0 9px var(--green); }
+    .camera-feed { position: relative; overflow: hidden; border: 1px solid rgba(60,244,236,.35); border-radius: 17px; aspect-ratio: 16/10; background: radial-gradient(circle at center, #202954, #080d20 75%); }
+    .camera-feed video, .camera-feed canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+    .camera-feed video { opacity: 0; transition: opacity .25s; }
+    .camera-feed.video-on video { opacity: 1; }
+    .camera-feed canvas { z-index: 2; pointer-events: none; }
+    .camera-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; color: #b4c0ed; text-align: center; padding: 12px; }
+    .camera-feed.video-on .camera-placeholder { display: none; }
+    .camera-placeholder .cam-icon { display: grid; place-items: center; height: 54px; width: 54px; border-radius: 19px; border: 1px solid #6a7cb855; background: #b6c5ff12; font-size: 25px; }
+    .camera-placeholder strong { font-size: 12px; }
+    .camera-placeholder span { font-size: 10px; max-width: 200px; line-height: 1.4; }
+    .camera-caption { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; color: var(--muted); margin-top: 8px; }
+    .camera-caption strong { color: var(--cyan); }
+    .instructions { padding: 14px; border-radius: 17px; background: rgba(255,255,255,.035); border: 1px solid rgba(174,191,255,.14); }
+    .instructions h3 { font-size: 12px; margin: 0 0 11px; letter-spacing: .04em; }
+    .step { display: grid; grid-template-columns: 28px 1fr; gap: 9px; align-items: start; margin-top: 10px; }
+    .step-num { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 9px; color: #0c1230; background: var(--cyan); font-size: 11px; font-weight: 1000; }
+    .step:nth-of-type(3) .step-num { background: var(--yellow); }
+    .step:nth-of-type(4) .step-num { background: var(--pink); }
+    .step strong { display: block; font-size: 11px; margin: 0 0 3px; }
+    .step span { display: block; font-size: 10px; line-height: 1.45; color: var(--muted); }
+    .control-row { display: flex; gap: 8px; margin-top: auto; }
+    .control-btn { flex: 1; border: 1px solid rgba(174,191,255,.23); color: #ebeeff; padding: 10px 12px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: 900; background: rgba(255,255,255,.055); transition: filter .15s, transform .15s; }
+    .control-btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+    .control-btn.primary { color: #07162b; border-color: transparent; background: linear-gradient(100deg, var(--cyan), #87f5ba); box-shadow: 0 7px 19px rgba(60,244,236,.16); }
+    .control-btn:disabled { opacity: .6; cursor: wait; }
+    footer { padding: 15px 4px 0; color: #8996c4; font-size: 10px; line-height: 1.5; display: flex; justify-content: space-between; gap: 12px; }
+    .overlay { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(5,8,24,.76); backdrop-filter: blur(14px); transition: opacity .25s, visibility .25s; }
+    .overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    .modal { position: relative; width: min(530px, 100%); padding: clamp(24px, 5vw, 40px); border-radius: 28px; overflow: hidden; text-align: center; border: 1px solid rgba(174,191,255,.26); background: linear-gradient(145deg, #1b2451, #10152f 75%); box-shadow: 0 28px 80px #0008; }
+    .modal::before { content: ""; position: absolute; top: -80px; left: 20%; width: 260px; height: 170px; border-radius: 50%; background: rgba(60,244,236,.17); filter: blur(50px); }
+    .modal-emoji { position: relative; display: grid; place-items: center; width: 78px; height: 78px; margin: 0 auto 18px; font-size: 38px; border-radius: 25px; background: linear-gradient(135deg, var(--yellow), var(--pink)); box-shadow: 0 0 35px rgba(255,79,216,.24); }
+    .modal h2 { position: relative; max-width: none; font-size: clamp(27px, 5vw, 38px); margin-bottom: 12px; }
+    .modal p { position: relative; color: #b7c2eb; font-size: 13px; line-height: 1.65; margin: 0 auto 18px; max-width: 430px; }
+    .modal-rules { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 18px 0 22px; }
+    .rule { padding: 11px 6px; border: 1px solid rgba(174,191,255,.15); background: rgba(255,255,255,.04); border-radius: 13px; }
+    .rule strong { display: block; color: var(--cyan); font-size: 11px; margin-bottom: 3px; }
+    .rule span { display: block; color: #a8b3df; font-size: 10px; }
+    .start-btn { position: relative; width: 100%; border: 0; padding: 15px 20px; border-radius: 15px; cursor: pointer; color: #10142b; background: linear-gradient(100deg, var(--cyan), #9afab8 58%, var(--yellow)); font-size: 14px; font-weight: 1000; box-shadow: 0 9px 25px rgba(60,244,236,.19); }
+    .start-btn:hover { filter: brightness(1.06); }
+    .modal-note { position: relative; margin-top: 12px; color: #8492bf; font-size: 10px; line-height: 1.5; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @keyframes portalPulse { 0%,100% { transform: scale(1); box-shadow: 0 0 0 8px rgba(255,79,216,.12), 0 0 27px rgba(255,79,216,.43), inset 0 0 15px #fff7; } 50% { transform: scale(1.06); box-shadow: 0 0 0 12px rgba(255,79,216,.06), 0 0 37px rgba(255,79,216,.7), inset 0 0 15px #fff7; } }
+    @keyframes pulse { from { opacity: 1; } to { opacity: .55; } }
+    @media (max-width: 1050px) {
+      body { padding: 12px; }
+      .layout { grid-template-columns: minmax(0, 1fr) 270px; gap: 12px; }
+      .game-panel { padding: 14px; }
+      .side-panel { padding: 13px; }
+      .answer-orb { padding: 11px 9px; gap: 7px; }
+      .answer-orb .orb-letter { width: 31px; height: 31px; border-radius: 10px; }
+    }
+    @media (max-width: 800px) {
+      .topbar { align-items: flex-start; }
+      .live-pill { font-size: 9px; padding: 8px 10px; }
+      .stats { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+      .stat { min-height: 64px; padding: 10px 12px; }
+      .layout { grid-template-columns: 1fr; }
+      .side-panel { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: start; }
+      .side-panel > .side-title, .side-panel > .control-row { grid-column: 1 / -1; }
+      .side-panel > .side-title { margin-bottom: -5px; }
+      .camera-block { min-width: 0; }
+      .instructions { height: 100%; }
+      .arena { height: 450px; }
+    }
+    @media (max-width: 540px) {
+      body { padding: 9px; }
+      .brand-mark { width: 43px; height: 43px; border-radius: 13px; font-size: 22px; }
+      .eyebrow { font-size: 8px; }
+      .brand-sub { font-size: 10px; }
+      .live-pill { white-space: normal; max-width: 115px; line-height: 1.3; }
+      .stat { gap: 8px; }
+      .stat-icon { width: 32px; height: 32px; border-radius: 10px; font-size: 16px; }
+      .stat-label { font-size: 8px; }
+      .stat-value { font-size: 19px; }
+      .question-head { gap: 8px; }
+      .question-count { font-size: 10px; padding: 7px 8px; }
+      .hintbar { font-size: 10px; align-items: flex-start; }
+      .arena { min-height: 440px; height: 440px; }
+      .target { left: 72%; width: 26%; min-width: 0; height: 128px; top: 30px; font-size: 8px; padding: 5px; }
+      .target-core { height: 57px; width: 57px; border-width: 4px; font-size: 22px; }
+      .answer-orb { height: 155px; bottom: 18px; width: 31.7%; border-radius: 15px; flex-direction: column; justify-content: center; text-align: center; padding: 10px 7px; gap: 8px; }
+      .answer-orb:nth-of-type(1) { left: 1.3%; }
+      .answer-orb:nth-of-type(2) { left: 34.15%; }
+      .answer-orb:nth-of-type(3) { left: 67%; }
+      .answer-orb .orb-letter { width: 29px; height: 29px; }
+      .answer-orb .answer-copy { font-size: 10px; line-height: 1.3; }
+      .held-ball { width: 43%; font-size: 11px; }
+      .hand-cursor { width: 40px; height: 40px; }
+      .side-panel { grid-template-columns: 1fr; }
+      .side-panel > .side-title, .side-panel > .control-row { grid-column: auto; }
+      .instructions { height: auto; }
+      footer { flex-direction: column; }
+      .modal-rules { gap: 5px; }
+      .rule { padding: 9px 3px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">⚡</div>
+        <div>
+          <div class="eyebrow">Gesture-powered English quiz</div>
+          <h1>GRAB &amp; THROW <span style="color:#3cf4ec">ENGLISH ARENA</span></h1>
+          <div class="brand-sub">English Language Challenge · Think fast, move your hand!</div>
+        </div>
+      </div>
+      <div class="live-pill"><span class="live-dot"></span> MEDIAPIPE HANDS</div>
+    </header>
+
+    <section class="stats" aria-label="Statistik permainan">
+      <div class="stat"><div class="stat-icon">🏆</div><div><div class="stat-label">Score</div><div class="stat-value" id="scoreValue">0000</div></div></div>
+      <div class="stat"><div class="stat-icon">❤️</div><div><div class="stat-label">Lives</div><div class="stat-value" id="lifeValue" aria-label="3 lives">♥ ♥ ♥</div></div></div>
+      <div class="stat"><div class="stat-icon">⏱️</div><div><div class="stat-label">Time</div><div class="stat-value" id="timerValue">01:30</div></div></div>
+      <div class="stat"><div class="stat-icon">🎯</div><div><div class="stat-label">Question</div><div class="stat-value" id="questionStat">01 / 10</div></div></div>
+    </section>
+
+    <main class="layout">
+      <section class="panel game-panel" aria-label="Arena kuiz">
+        <div class="question-head">
+          <div><div class="question-kicker">⚡ History mission</div><h2 id="questionText">Ready to explore Malaysian education history?</h2></div>
+          <div class="question-count" id="questionCount">SOALAN 01</div>
+        </div>
+        <div class="progress-track" aria-label="Question progress"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="hintbar"><span><strong>Objective:</strong> Grab the correct answer and release it into the portal.</span><span class="gesture-label">PINCH → GRAB → THROW</span></div>
+
+        <div class="arena" id="arena">
+          <div class="arena-tag">ANSWER ORBS · ACTIVE ZONE</div>
+          <div class="arena-glow"></div>
+          <div class="target" id="target" aria-label="Target portal. Release your pinch here to submit your answer.">
+            <div class="target-core">✦</div>
+            <span>TARGET PORTAL</span>
+            <span style="opacity:.75">RELEASE HERE</span>
+          </div>
+          <div class="hand-cursor" id="handCursor" aria-hidden="true"></div>
+          <div class="held-ball" id="heldBall" aria-hidden="true"></div>
+          <div class="projectile" id="projectile" aria-hidden="true">✦</div>
+          <div class="sr-only" id="answersLabel">Three answer choices will appear in the arena.</div>
+        </div>
+        <div class="toast" id="toast" role="status" aria-live="polite">Press “Start Game” to activate the camera and begin the challenge.</div>
+      </section>
+
+      <aside class="panel side-panel">
+        <div class="side-title"><span>📷 Player Camera</span><span class="camera-status" id="cameraStatus"><span class="status-dot"></span><span>WAITING FOR CAMERA</span></span></div>
+        <div class="camera-block">
+          <div class="camera-feed" id="cameraFeed">
+            <video id="webcam" playsinline autoplay muted></video>
+            <canvas id="handCanvas"></canvas>
+            <div class="camera-placeholder"><div class="cam-icon">📹</div><strong>Your webcam will appear here</strong><span>Allow camera access when your browser asks.</span></div>
+          </div>
+          <div class="camera-caption"><span><strong>SELFIE VIEW</strong> · mirrored image</span><span id="handStatus">No hand detected</span></div>
+        </div>
+
+        <div class="instructions">
+          <h3>🎮 How to play</h3>
+          <div class="step"><div class="step-num">1</div><div><strong>Pinch to grab</strong><span>Bring your thumb tip and index fingertip together on an answer orb. Hold the pinch briefly for stable detection.</span></div></div>
+          <div class="step"><div class="step-num">2</div><div><strong>Move your hand</strong><span>Move the orb to the glowing target portal in the arena.</span></div></div>
+          <div class="step"><div class="step-num">3</div><div><strong>Release to throw</strong><span>Release your pinch while the cursor is inside the portal.</span></div></div>
+          <div class="step"><div class="step-num">★</div><div><strong>Score points, save your lives!</strong><span>Correct answer: +100 points. Wrong answer: lose one life.</span></div></div>
+        </div>
+        <div class="control-row"><button class="control-btn" id="soundBtn" type="button">🔊 Sound: ON</button><button class="control-btn primary" id="restartBtn" type="button">↻ Restart</button></div>
+      </aside>
+    </main>
+    <footer><span>Quiz topic: Malaysian education reforms (1946–1952) and Aminuddin Baki’s contributions.</span><span>Camera requires HTTPS or localhost. Game text is not mirrored.</span></footer>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <div class="modal-emoji" id="modalEmoji">⚡</div>
+      <div class="eyebrow" id="modalEyebrow">WELCOME TO THE ARENA</div>
+      <h2 id="modalTitle">Grab. Throw.<br><span style="color:#3cf4ec">Explore History.</span></h2>
+      <p id="modalDescription">Answer 10 questions about Malaysian education reforms from 1946 to 1952 and Aminuddin Baki’s contributions. Use hand gestures in front of your webcam to grab an answer orb and throw it into the portal.</p>
+      <div class="modal-rules"><div class="rule"><strong>10 QUESTIONS</strong><span>Malaysian education history</span></div><div class="rule"><strong>3 LIVES</strong><span>Choose carefully</span></div><div class="rule"><strong>90 SECONDS</strong><span>Beat your high score</span></div></div>
+      <button class="start-btn" id="startBtn" type="button">🚀 START GAME</button>
+      <div class="modal-note" id="modalNote">Allow camera access. Use Chrome or Edge over HTTPS/localhost for the best webcam support.</div>
+    </div>
+  </div>
+
+  <!-- MediaPipe Hands and drawing helpers loaded from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script>
+    (() => {
+      'use strict';
+
+      const questions = [
+        {
+          question: 'What did the Cheeseman Plan of 1946 propose?',
+          options: [
+            'Free primary education while allowing existing Malay, Chinese and Tamil schools to continue',
+            'Abolishing all primary schools immediately',
+            'Replacing every school with English-only secondary schools'
+          ], correct: 0,
+          explanation: 'The essay explains that the Cheeseman Plan proposed free primary education while allowing Malay, Chinese and Tamil schools to continue.'
+        },
+        {
+          question: 'What was a major direction of the Barnes Report of 1951?',
+          options: [
+            'Keeping all school systems completely separate',
+            'Developing national schools using Malay and English',
+            'Ending government involvement in education'
+          ], correct: 1,
+          explanation: 'The Barnes Report moved towards national schools using Malay and English and sought to improve Malay education.'
+        },
+        {
+          question: 'What did the Fenn-Wu Report of 1951 mainly defend?',
+          options: [
+            'The removal of Chinese-language education',
+            'English-only education for every community',
+            'Chinese education and the role of the Chinese language'
+          ], correct: 2,
+          explanation: 'The Fenn-Wu Report defended Chinese education and the role of the Chinese language.'
+        },
+        {
+          question: 'What did the Education Ordinance 1952 attempt to do?',
+          options: [
+            'Reach a compromise by supporting national schools while allowing Chinese and Tamil to be taught under specified conditions',
+            'Close every Chinese and Tamil school immediately',
+            'Introduce university education for all children'
+          ], correct: 0,
+          explanation: 'The 1952 Ordinance attempted a compromise, supporting national schools while permitting Chinese and Tamil to be taught under specified conditions.'
+        },
+        {
+          question: 'What was one reason the Education Ordinance 1952 was not fully implemented?',
+          options: [
+            'There were too many trained bilingual teachers',
+            'Financial limitations and shortages of bilingual teachers',
+            'There was no public interest in education'
+          ], correct: 1,
+          explanation: 'The essay identifies financial limitations, shortages of bilingual teachers and opposition as reasons implementation was incomplete.'
+        },
+        {
+          question: 'What role did Aminuddin Baki have in the 1951 Barnes Committee?',
+          options: [
+            'He chaired the Fenn-Wu Report',
+            'He was a member of the Barnes Committee',
+            'He led the Education Ordinance of 1952 as minister'
+          ], correct: 1,
+          explanation: 'Aminuddin Baki was a member of the Barnes Committee in 1951 and took part in debates about Malay education and national schools.'
+        },
+        {
+          question: 'What did Aminuddin Baki propose in his 1953 paper?',
+          options: [
+            'Separating pupils by community in all activities',
+            'Replacing co-curricular activities with examinations only',
+            'Bringing pupils from different communities together through shared curriculum and co-curricular activities'
+          ], correct: 2,
+          explanation: 'His 1953 paper proposed bringing pupils from different communities together through shared curriculum and co-curricular activities.'
+        },
+        {
+          question: 'What was the focus of the committee Aminuddin Baki chaired in 1962?',
+          options: [
+            'Investigating weaknesses among Malay secondary students',
+            'Designing the first national university',
+            'Writing the Fenn-Wu Report'
+          ], correct: 0,
+          explanation: 'In 1962, Aminuddin chaired a committee investigating weaknesses among Malay secondary students, including issues involving textbooks and teacher shortages.'
+        },
+        {
+          question: 'How did Aminuddin Baki contribute to the Razak Report process of 1956?',
+          options: [
+            'He was the chair of the Razak Committee',
+            'He contributed a memorandum but was not a member of the Razak Committee',
+            'He rejected all forms of national education'
+          ], correct: 1,
+          explanation: 'The essay states that Aminuddin was not a member of the Razak Committee, but he contributed a memorandum to the process.'
+        },
+        {
+          question: 'What continuing challenge did the education reforms of 1946–1952 highlight?',
+          options: [
+            'Choosing between primary and university education only',
+            'Removing all community languages from schools',
+            'Balancing national unity, educational opportunity and linguistic diversity'
+          ], correct: 2,
+          explanation: 'The essay concludes that the reforms highlighted the continuing challenge of balancing national unity, educational opportunity and linguistic diversity.'
+        }
+      ];
+
+      const $ = (id) => document.getElementById(id);
+      const arena = $('arena');
+      const video = $('webcam');
+      const canvas = $('handCanvas');
+      const ctx = canvas.getContext('2d');
+      const handCursor = $('handCursor');
+      const heldBall = $('heldBall');
+      const projectile = $('projectile');
+      const target = $('target');
+      const toast = $('toast');
+      const overlay = $('overlay');
+      const startBtn = $('startBtn');
+      const restartBtn = $('restartBtn');
+      const soundBtn = $('soundBtn');
+      const cameraStatus = $('cameraStatus');
+      const cameraFeed = $('cameraFeed');
+      const handStatus = $('handStatus');
+
+      let score = 0;
+      let lives = 3;
+      let questionIndex = 0;
+      let secondsLeft = 90;
+      let timerHandle = null;
+      let isRunning = false;
+      let locked = false;
+      let grabbedIndex = null;
+      let isPinching = false;
+      let handVisible = false;
+      let cameraActive = false;
+      let mediaStream = null;
+      let hands = null;
+      let soundOn = true;
+      let audioContext = null;
+      let toastHandle = null;
+      let lastSecondPlayed = -1;
+      let frameBusy = false;
+      // Tracking state: adaptive smoothing, pinch hysteresis and dropped-frame tolerance.
+      let smoothedPoint = null;
+      let smoothedDrawLandmarks = null;
+      let lastPointTime = 0;
+      let missingHandFrames = 0;
+      let pinchStartFrames = 0;
+      let pinchReleaseFrames = 0;
+      let cameraLoopToken = 0;
+      let scheduledRaf = null;
+      let scheduledVideoFrame = null;
+      const TRACKING = Object.freeze({
+        pinchStartRatio: 0.28,       // start pinch when tip gap is small vs palm size
+        pinchReleaseRatio: 0.43,     // hysteresis prevents pinch flicker
+        pinchConfirmFrames: 2,       // stable detections before state changes
+        handGraceFrames: 3,          // tolerate brief missed detections
+        handLostCancelFrames: 10,    // cancel a held answer only after a sustained loss
+        smoothingMinAlpha: 0.24,     // stronger smoothing at rest
+        smoothingMaxAlpha: 0.82,     // more responsiveness during fast movement
+        responsiveSpeed: 1200        // arena pixels/second at near-max smoothing
+      });
+
+      function escapeHTML(value) {
+        return String(value).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      }
+
+      function playTone(freq = 440, duration = .12, type = 'sine', volume = .055) {
+        if (!soundOn) return;
+        try {
+          audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+          if (audioContext.state === 'suspended') audioContext.resume();
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          oscillator.type = type;
+          oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+          gain.gain.setValueAtTime(volume, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + duration);
+          oscillator.connect(gain); gain.connect(audioContext.destination);
+          oscillator.start(); oscillator.stop(audioContext.currentTime + duration);
+        } catch (_) { /* Audio is optional; game remains playable without it. */ }
+      }
+
+      function soundCorrect() { playTone(660, .11, 'triangle'); setTimeout(() => playTone(880, .17, 'triangle'), 90); }
+      function soundWrong() { playTone(210, .22, 'sawtooth', .04); }
+
+      function setToast(message, state = '') {
+        toast.textContent = message;
+        toast.className = 'toast' + (state ? ' ' + state : '');
+        if (toastHandle) clearTimeout(toastHandle);
+        if (state) toastHandle = setTimeout(() => { toast.className = 'toast'; }, 2500);
+      }
+
+      function updateStats() {
+        $('scoreValue').textContent = String(score).padStart(4, '0');
+        $('lifeValue').textContent = Array.from({length: 3}, (_, i) => i < lives ? '♥' : '♡').join(' ');
+        $('lifeValue').setAttribute('aria-label', lives + ' lives');
+        $('timerValue').textContent = `${String(Math.floor(secondsLeft / 60)).padStart(2,'0')}:${String(secondsLeft % 60).padStart(2,'0')}`;
+        $('timerValue').classList.toggle('urgent', secondsLeft <= 10);
+        const shown = Math.min(questionIndex + 1, questions.length);
+        $('questionStat').textContent = `${String(shown).padStart(2,'0')} / ${questions.length}`;
+        $('progressFill').style.width = `${(questionIndex / questions.length) * 100}%`;
+      }
+
+      function renderQuestion() {
+        if (questionIndex >= questions.length) return finishGame('win');
+        const item = questions[questionIndex];
+        $('questionText').textContent = item.question;
+        $('questionCount').textContent = `QUESTION ${String(questionIndex + 1).padStart(2, '0')}`;
+        $('progressFill').style.width = `${(questionIndex / questions.length) * 100}%`;
+        arena.querySelectorAll('.answer-orb').forEach((node) => node.remove());
+        item.options.forEach((answer, index) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'answer-orb';
+          button.dataset.index = String(index);
+          button.dataset.color = String(index);
+          button.setAttribute('aria-label', `Choice ${String.fromCharCode(65 + index)}: ${answer}`);
+          button.innerHTML = `<span class="orb-letter">${String.fromCharCode(65 + index)}</span><span class="answer-copy">${escapeHTML(answer)}</span>`;
+          button.addEventListener('click', () => {
+            if (!isRunning || locked) return;
+            // Mouse-accessible fallback: click an answer, then click the portal to throw it.
+            if (grabbedIndex !== null) clearGrab();
+            grabbedIndex = index;
+            button.classList.add('picked');
+            heldBall.textContent = answer;
+            heldBall.classList.add('visible');
+            const a = arena.getBoundingClientRect();
+            const r = button.getBoundingClientRect();
+            heldBall.style.left = `${r.left - a.left + r.width / 2}px`;
+            heldBall.style.top = `${r.top - a.top + r.height / 2}px`;
+            setToast('Answer selected. Click the target portal to throw (mouse mode).');
+          });
+          arena.appendChild(button);
+        });
+        updateStats();
+      }
+
+      function clearGrab() {
+        if (grabbedIndex !== null) {
+          const old = arena.querySelector(`.answer-orb[data-index="${grabbedIndex}"]`);
+          if (old) old.classList.remove('picked');
+        }
+        grabbedIndex = null;
+        heldBall.classList.remove('visible');
+        heldBall.textContent = '';
+      }
+
+      function pointInsideElement(x, y, element) {
+        const a = arena.getBoundingClientRect();
+        const r = element.getBoundingClientRect();
+        const left = r.left - a.left, top = r.top - a.top;
+        return x >= left && x <= left + r.width && y >= top && y <= top + r.height;
+      }
+
+      function attemptGrab(x, y) {
+        const choices = [...arena.querySelectorAll('.answer-orb')];
+        const found = choices.find((button) => pointInsideElement(x, y, button));
+        if (!found) {
+          setToast('Pinch directly over an answer orb to pick it up.');
+          playTone(280, .08, 'sine', .025);
+          return;
+        }
+        grabbedIndex = Number(found.dataset.index);
+        found.classList.add('picked');
+        heldBall.textContent = questions[questionIndex].options[grabbedIndex];
+        heldBall.classList.add('visible');
+        playTone(520, .08, 'triangle', .04);
+        setToast(`Answer ${String.fromCharCode(65 + grabbedIndex)} is held. Move your hand to the portal, then release the pinch.`, 'good');
+      }
+
+      function cancelThrow() {
+        clearGrab();
+        target.classList.remove('active');
+        setToast('Not in the portal yet! Keep pinching, move the cursor into the portal, then release.');
+        playTone(260, .12, 'sine', .035);
+      }
+
+      function beginThrow(index, startX, startY) {
+        if (!isRunning || locked || index === null || index === undefined) return;
+        locked = true;
+        const arenaRect = arena.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const tx = targetRect.left - arenaRect.left + targetRect.width / 2;
+        const ty = targetRect.top - arenaRect.top + targetRect.height / 2;
+        const sx = Number.isFinite(startX) ? startX : tx;
+        const sy = Number.isFinite(startY) ? startY : ty;
+        heldBall.classList.remove('visible');
+        handCursor.classList.remove('pinching');
+        target.classList.add('active');
+        projectile.classList.remove('flying');
+        projectile.classList.add('visible');
+        projectile.style.transition = 'none';
+        projectile.style.left = `${sx}px`;
+        projectile.style.top = `${sy}px`;
+        projectile.style.transform = 'translate(-50%, -50%) scale(1) rotate(0deg)';
+        // Force the starting position to be painted before starting its flight animation.
+        void projectile.offsetWidth;
+        projectile.style.transition = '';
+        projectile.classList.add('flying');
+        projectile.style.left = `${tx}px`;
+        projectile.style.top = `${ty}px`;
+        playTone(390, .1, 'sawtooth', .035);
+        setToast('The answer orb is flying to the portal…');
+        setTimeout(() => {
+          if (!isRunning) {
+            projectile.classList.remove('visible', 'flying');
+            target.classList.remove('active');
+            return;
+          }
+          projectile.classList.remove('visible', 'flying');
+          target.classList.remove('active');
+          const item = questions[questionIndex];
+          const correct = index === item.correct;
+          clearGrab();
+          if (correct) {
+            score += 100;
+            soundCorrect();
+            setToast(`CORRECT! +100 points. ${item.explanation}`, 'good');
+          } else {
+            lives = Math.max(0, lives - 1);
+            soundWrong();
+            setToast(`Not quite. ${item.explanation}`, 'bad');
+          }
+          questionIndex += 1;
+          updateStats();
+          if (lives <= 0) {
+            setTimeout(() => finishGame('lost'), 900);
+            return;
+          }
+          if (questionIndex >= questions.length) {
+            setTimeout(() => finishGame('win'), 1000);
+            return;
+          }
+          setTimeout(() => {
+            if (!isRunning) return;
+            locked = false;
+            renderQuestion();
+            setToast('Next question! Pinch an answer orb and release it inside the target portal.');
+          }, 1000);
+        }, 700);
+      }
+
+      target.addEventListener('click', () => {
+        if (isRunning && !locked && grabbedIndex !== null) {
+          const ar = arena.getBoundingClientRect();
+          const tr = target.getBoundingClientRect();
+          const fallbackX = tr.left - ar.left + tr.width / 2;
+          const fallbackY = tr.top - ar.top + tr.height / 2;
+          const ballX = heldBall.style.left ? parseFloat(heldBall.style.left) : fallbackX;
+          const ballY = heldBall.style.top ? parseFloat(heldBall.style.top) : fallbackY;
+          beginThrow(grabbedIndex, ballX, ballY);
+        }
+      });
+
+      function mapLandmarkToArena(rawX, rawY) {
+        const feedRect = cameraFeed.getBoundingClientRect();
+        const sourceWidth = video.videoWidth || 640;
+        const sourceHeight = video.videoHeight || 480;
+        const sourceAspect = sourceWidth / sourceHeight;
+        const viewAspect = Math.max(0.01, feedRect.width / Math.max(1, feedRect.height));
+        let xVisible = rawX, yVisible = rawY;
+        // Match object-fit: cover cropping so the cursor tracks the mirrored preview precisely.
+        if (sourceAspect > viewAspect) {
+          const span = viewAspect / sourceAspect;
+          const offset = (1 - span) / 2;
+          xVisible = (rawX - offset) / span;
+        } else if (sourceAspect < viewAspect) {
+          const span = sourceAspect / viewAspect;
+          const offset = (1 - span) / 2;
+          yVisible = (rawY - offset) / span;
+        }
+        xVisible = Math.max(0, Math.min(1, xVisible));
+        yVisible = Math.max(0, Math.min(1, yVisible));
+        const a = arena.getBoundingClientRect();
+        return { x: (1 - xVisible) * a.width, y: yVisible * a.height };
+      }
+
+      function smoothArenaPoint(rawPoint, now = performance.now()) {
+        if (!smoothedPoint || !lastPointTime) {
+          smoothedPoint = { x: rawPoint.x, y: rawPoint.y };
+          lastPointTime = now;
+          return { ...smoothedPoint };
+        }
+        const dt = Math.max(1 / 120, Math.min(0.12, (now - lastPointTime) / 1000));
+        const dx = rawPoint.x - smoothedPoint.x;
+        const dy = rawPoint.y - smoothedPoint.y;
+        const speed = Math.hypot(dx, dy) / dt;
+        // Adaptive EMA: quiet hands are stabilised, fast intentional movements remain responsive.
+        const motion = Math.min(1, speed / TRACKING.responsiveSpeed);
+        const alpha = TRACKING.smoothingMinAlpha +
+          (TRACKING.smoothingMaxAlpha - TRACKING.smoothingMinAlpha) * motion;
+        smoothedPoint.x += dx * alpha;
+        smoothedPoint.y += dy * alpha;
+        lastPointTime = now;
+        return { x: smoothedPoint.x, y: smoothedPoint.y };
+      }
+
+      function resetTrackingSmoothing() {
+        smoothedPoint = null;
+        smoothedDrawLandmarks = null;
+        lastPointTime = 0;
+        missingHandFrames = 0;
+        pinchStartFrames = 0;
+        pinchReleaseFrames = 0;
+      }
+
+      function smoothLandmarksForDrawing(landmarks) {
+        const width = video.videoWidth || 640;
+        const height = video.videoHeight || 480;
+        if (!smoothedDrawLandmarks || smoothedDrawLandmarks.length !== landmarks.length) {
+          smoothedDrawLandmarks = landmarks.map((point) => ({ ...point }));
+          return smoothedDrawLandmarks;
+        }
+        // Smooth the visible finger/bone overlay independently from gesture thresholds.
+        for (let i = 0; i < landmarks.length; i++) {
+          const current = landmarks[i];
+          const previous = smoothedDrawLandmarks[i];
+          const motionPixels = Math.hypot((current.x - previous.x) * width, (current.y - previous.y) * height);
+          const alpha = Math.max(0.32, Math.min(0.86, 0.32 + motionPixels / 95));
+          previous.x += (current.x - previous.x) * alpha;
+          previous.y += (current.y - previous.y) * alpha;
+          if (Number.isFinite(current.z) && Number.isFinite(previous.z)) {
+            previous.z += (current.z - previous.z) * alpha;
+          }
+        }
+        return smoothedDrawLandmarks;
+      }
+
+      function pinchRatioFromLandmarks(landmarks) {
+        const thumb = landmarks[4];
+        const index = landmarks[8];
+        const wrist = landmarks[0];
+        const middleMcp = landmarks[9];
+        const w = video.videoWidth || 640;
+        const h = video.videoHeight || 480;
+        // Pixel-space distances avoid aspect-ratio bias between wide and tall camera frames.
+        const tipGap = Math.hypot((thumb.x - index.x) * w, (thumb.y - index.y) * h);
+        const palmSpan = Math.hypot((middleMcp.x - wrist.x) * w, (middleMcp.y - wrist.y) * h);
+        return tipGap / Math.max(1, palmSpan);
+      }
+
+      function updatePinchState(pinchRatio, point) {
+        if (!isPinching) {
+          pinchReleaseFrames = 0;
+          if (pinchRatio <= TRACKING.pinchStartRatio) pinchStartFrames++;
+          else pinchStartFrames = 0;
+          if (pinchStartFrames >= TRACKING.pinchConfirmFrames) {
+            isPinching = true;
+            pinchStartFrames = 0;
+            handCursor.classList.add('pinching');
+            if (isRunning && !locked && grabbedIndex === null) attemptGrab(point.x, point.y);
+          }
+          return;
+        }
+
+        pinchStartFrames = 0;
+        if (pinchRatio >= TRACKING.pinchReleaseRatio) pinchReleaseFrames++;
+        else pinchReleaseFrames = 0;
+        if (pinchReleaseFrames >= TRACKING.pinchConfirmFrames) {
+          isPinching = false;
+          pinchReleaseFrames = 0;
+          handCursor.classList.remove('pinching');
+          if (isRunning && !locked && grabbedIndex !== null) {
+            if (pointInsideElement(point.x, point.y, target)) {
+              beginThrow(grabbedIndex, point.x, point.y);
+            } else {
+              cancelThrow();
+            }
+          }
+          target.classList.remove('active');
+        }
+      }
+
+      function onHandResults(results) {
+        if (video.videoWidth && (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight)) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const landmarks = results.multiHandLandmarks && results.multiHandLandmarks[0];
+        if (!landmarks) {
+          missingHandFrames++;
+          // Ignore short detector dropouts so the cursor/held ball do not flicker.
+          if (missingHandFrames <= TRACKING.handGraceFrames) return;
+          handStatus.textContent = 'Looking for your hand…';
+          handCursor.style.display = 'none';
+          if (missingHandFrames >= TRACKING.handLostCancelFrames) {
+            handVisible = false;
+            if (isPinching) {
+              isPinching = false;
+              pinchStartFrames = 0;
+              pinchReleaseFrames = 0;
+              handCursor.classList.remove('pinching');
+              if (isRunning && !locked && grabbedIndex !== null) cancelThrow();
+            }
+            resetTrackingSmoothing();
+          }
+          return;
+        }
+
+        missingHandFrames = 0;
+        handVisible = true;
+        handStatus.textContent = isPinching ? 'PINCH ACTIVE · HAND DETECTED' : 'Hand detected ✓';
+        const visualLandmarks = smoothLandmarksForDrawing(landmarks);
+        if (typeof drawConnectors === 'function' && typeof HAND_CONNECTIONS !== 'undefined') {
+          drawConnectors(ctx, visualLandmarks, HAND_CONNECTIONS, {
+            color: '#3cf4ec', lineWidth: Math.max(2, canvas.width / 420)
+          });
+          drawLandmarks(ctx, visualLandmarks, {
+            color: '#ffe66d', lineWidth: 1, radius: Math.max(2, canvas.width / 220)
+          });
+        }
+
+        // Use the thumb/index midpoint as the pinch pointer, then smooth its arena coordinates.
+        const thumb = landmarks[4], index = landmarks[8];
+        const midpoint = { x: (thumb.x + index.x) / 2, y: (thumb.y + index.y) / 2 };
+        const rawPoint = mapLandmarkToArena(midpoint.x, midpoint.y);
+        const point = smoothArenaPoint(rawPoint);
+        handCursor.style.display = 'block';
+        handCursor.style.left = `${point.x}px`;
+        handCursor.style.top = `${point.y}px`;
+
+        if (grabbedIndex !== null && isPinching) {
+          heldBall.style.left = `${point.x}px`;
+          heldBall.style.top = `${point.y}px`;
+          target.classList.toggle('active', pointInsideElement(point.x, point.y, target));
+        }
+        updatePinchState(pinchRatioFromLandmarks(landmarks), point);
+      }
+
+      async function startCamera() {
+        if (cameraActive) return;
+        if (!window.isSecureContext) throw new Error('The browser blocks camera access because this page is not HTTPS/localhost. Host the file over HTTPS or run it through localhost.');
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('The camera API is unavailable. Open this in Chrome/Edge over HTTPS or localhost, not in the Canva preview.');
+        // Request camera permission first so a MediaPipe CDN failure cannot prevent the permission prompt.
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 960 }, height: { ideal: 540 }, frameRate: { ideal: 30, max: 30 } },
+          audio: false
+        });
+        video.srcObject = mediaStream;
+        await video.play();
+        if (typeof window.Hands !== 'function') throw new Error('Camera permission was granted, but MediaPipe Hands could not load. Check your internet/CDN connection and reload the page.');
+        hands = new window.Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.65, minTrackingConfidence: 0.65 });
+        hands.onResults(onHandResults);
+        cameraActive = true;
+        cameraFeed.classList.add('video-on');
+        cameraStatus.classList.add('on');
+        cameraStatus.lastElementChild.textContent = 'CAMERA ON';
+        handStatus.textContent = 'Looking for your hand…';
+        processCameraFrame();
+      }
+
+      async function processOneCameraFrame(token) {
+        if (!cameraActive || token !== cameraLoopToken || frameBusy || video.readyState < 2 || !hands) return;
+        frameBusy = true;
+        try {
+          await hands.send({ image: video });
+        } catch (error) {
+          console.warn('MediaPipe frame error:', error);
+        } finally {
+          frameBusy = false;
+        }
+      }
+
+      function scheduleCameraFrame(token) {
+        if (!cameraActive || token !== cameraLoopToken) return;
+        if (typeof video.requestVideoFrameCallback === 'function') {
+          scheduledVideoFrame = video.requestVideoFrameCallback(async () => {
+            await processOneCameraFrame(token);
+            scheduleCameraFrame(token);
+          });
+        } else {
+          scheduledRaf = requestAnimationFrame(async () => {
+            await processOneCameraFrame(token);
+            scheduleCameraFrame(token);
+          });
+        }
+      }
+
+      function processCameraFrame() {
+        const token = ++cameraLoopToken;
+        scheduleCameraFrame(token);
+      }
+
+      function stopCamera() {
+        cameraActive = false;
+        cameraLoopToken++;
+        if (scheduledRaf !== null) cancelAnimationFrame(scheduledRaf);
+        if (scheduledVideoFrame !== null && typeof video.cancelVideoFrameCallback === 'function') {
+          try { video.cancelVideoFrameCallback(scheduledVideoFrame); } catch (_) {}
+        }
+        scheduledRaf = null;
+        scheduledVideoFrame = null;
+        if (mediaStream) mediaStream.getTracks().forEach((track) => track.stop());
+        mediaStream = null;
+        if (hands && typeof hands.close === 'function') { try { hands.close(); } catch (_) {} }
+        hands = null;
+        video.srcObject = null;
+        cameraFeed.classList.remove('video-on');
+        cameraStatus.classList.remove('on');
+        cameraStatus.lastElementChild.textContent = 'WAITING FOR CAMERA';
+        handStatus.textContent = 'No hand detected';
+        handCursor.style.display = 'none';
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        handVisible = false;
+        isPinching = false;
+        resetTrackingSmoothing();
+      }
+
+      async function startGame() {
+        startBtn.disabled = true;
+        startBtn.textContent = 'STARTING CAMERA…';
+        if (audioContext && audioContext.state === 'suspended') { try { await audioContext.resume(); } catch (_) {} }
+        try {
+          await startCamera();
+        } catch (error) {
+          console.warn(error);
+          stopCamera();
+          setToast(`${error.message || 'Camera is unavailable.'} Check the camera/site permission icon beside the browser address. Mouse mode is still available: click an answer orb, then click the portal.`, 'bad');
+          cameraStatus.lastElementChild.textContent = 'MOD TETIKUS';
+        }
+        score = 0; lives = 3; questionIndex = 0; secondsLeft = 90; locked = false; grabbedIndex = null; isPinching = false; lastSecondPlayed = -1;
+        isRunning = true;
+        clearInterval(timerHandle);
+        renderQuestion();
+        overlay.classList.add('hidden');
+        startBtn.disabled = false;
+        startBtn.textContent = '🚀 START GAME';
+        setToast(cameraActive ? 'Camera is active! Pinch an answer orb and release it in the target portal.' : 'Mouse mode is active: click an answer orb, then click the target portal.');
+        playTone(550, .12, 'triangle'); setTimeout(() => playTone(760, .15, 'triangle'), 120);
+        timerHandle = setInterval(() => {
+          if (!isRunning) return;
+          secondsLeft = Math.max(0, secondsLeft - 1);
+          updateStats();
+          if (secondsLeft <= 10 && secondsLeft > 0 && secondsLeft !== lastSecondPlayed) {
+            lastSecondPlayed = secondsLeft;
+            playTone(720, .07, 'square', .025);
+          }
+          if (secondsLeft <= 0) finishGame('time');
+        }, 1000);
+      }
+
+      function finishGame(reason) {
+        if (!isRunning && !overlay.classList.contains('hidden')) return;
+        isRunning = false;
+        locked = false;
+        clearInterval(timerHandle);
+        clearGrab();
+        target.classList.remove('active');
+        projectile.classList.remove('visible', 'flying');
+        $('progressFill').style.width = `${Math.min(100, (questionIndex / questions.length) * 100)}%`;
+        updateStats();
+        stopCamera();
+        let title, description, emoji, eyebrow;
+        if (reason === 'win' && lives > 0) {
+          title = 'Arena Conquered!'; description = `Excellent! You completed the challenge with ${score} points. Keep building your English grammar, vocabulary and punctuation skills.`; emoji = '🏆'; eyebrow = 'MISSION COMPLETE'; playTone(880, .2, 'triangle');
+        } else if (reason === 'lost') {
+          title = 'Out of Lives!'; description = `Your final score is ${score} points. Review the explanations and try again to improve your English skills.`; emoji = '💔'; eyebrow = 'TRY AGAIN';
+        } else {
+          title = 'Time is Up!'; description = `Time ran out. You scored ${score} points and reached question ${Math.min(questionIndex + 1, questions.length)} of ${questions.length}. Play again to improve your score.`; emoji = '⏱️'; eyebrow = 'TIME UP';
+        }
+        $('modalEmoji').textContent = emoji;
+        $('modalEyebrow').textContent = eyebrow;
+        $('modalTitle').textContent = title;
+        $('modalDescription').textContent = description;
+        $('startBtn').textContent = '↻ PLAY AGAIN';
+        $('modalNote').textContent = 'Text remains unmirrored. Only the webcam preview is mirrored to make hand control easier.';
+        overlay.classList.remove('hidden');
+      }
+
+      startBtn.addEventListener('click', startGame);
+      restartBtn.addEventListener('click', () => {
+        if (isRunning) {
+          isRunning = false;
+          clearInterval(timerHandle);
+          stopCamera();
+          clearGrab();
+        }
+        $('modalEmoji').textContent = '⚡';
+        $('modalEyebrow').textContent = 'WELCOME TO THE ARENA';
+        $('modalTitle').innerHTML = 'Grab. Throw.<br><span style="color:#3cf4ec">Show Your English.</span>';
+        $('modalDescription').textContent = 'Answer 10 questions about Malaysian education reforms from 1946 to 1952 and Aminuddin Baki’s contributions. Use hand gestures in front of your webcam to grab an answer orb and throw it into the portal.';
+        $('modalNote').textContent = 'Allow camera access. Use Chrome or Edge over HTTPS/localhost for the best webcam support.';
+        startBtn.textContent = '🚀 START GAME';
+        overlay.classList.remove('hidden');
+      });
+      soundBtn.addEventListener('click', () => {
+        soundOn = !soundOn;
+        soundBtn.textContent = soundOn ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+        if (soundOn) playTone(620, .1, 'triangle');
+      });
+
+      renderQuestion();
+      updateStats();
+    })();
+  </script>
+</body>
+</html>
